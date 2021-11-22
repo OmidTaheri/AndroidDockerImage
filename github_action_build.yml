@@ -12,6 +12,12 @@ jobs:
   build_debug :
     runs-on: ubuntu-latest
     steps:
+      - name: Create file
+      run: |
+         echo First        > other.txt
+         echo Second Line >> other.txt
+         echo Third       >> other.txt
+
       - name: Checkout the code
         uses: actions/checkout@v2
         
