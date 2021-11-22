@@ -1,0 +1,65 @@
+image: omidtaheri/android-docker:1.0.0
+
+
+before_script:
+  - chmod +x ./gradlew
+  - touch ./info.txt
+  - echo "Build date          $(date)"                >> ./info.txt
+  - echo "Git branch          ${CI_COMMIT_REF_NAME}"  >> ./info.txt
+  - echo "Git commit          ${CI_COMMIT_SHA}"       >> ./info.txt
+  - echo "Gitlab pipeline     ${CI_PIPELINE_ID}"      >> ./info.txt
+  - touch ./local.properties
+  - echo "sdkdir=${CI_sdkdir}"                                >> ./local.properties
+  - echo "signingkeyalias=${CI_signingkeyalias}"              >> ./local.properties
+  - echo "signingkeypassword=${CI_signingkeypassword}"        >> ./local.properties
+  - echo "signingstorefile=.${CI_signingstorefile}"            >> ./local.properties
+  - echo "signingstorepassword=${CI_signingstorepassword}"    >> ./local.properties
+  - echo "apikey=${CI_apikey}"                                >> ./local.properties
+  - echo "signingtvkeyalias=${CI_signingtvkeyalias}"          >> ./local.properties
+  - echo "signingtvkeypassword=${CI_signingtvkeypassword}"    >> ./local.properties
+  - echo "signingtvstorefile=.${CI_signingtvstorefile}"        >> ./local.properties
+  - echo "signingtvstorepassword=${CI_signingtvstorepassword}">> ./local.properties
+  - mkdir -p $(dirname ${CI_signingstorefile}) && touch ${CI_signingstorefile}
+  - echo ${CI_KEY_STORE_FILE_BASE64} | base64 --decode > ${CI_signingstorefile}
+ 
+
+  
+stages: 
+  - code_analysis
+  - build
+  - test
+  - doc
+  - deploy
+
+cache:
+  key: ${CI_PROJECT_ID}
+  paths:
+   - .gradle/
+
+build_debug :
+  stage: build
+  script:
+   - ./gradlew assembleDebug
+
+  artifacts:
+    paths :
+     - app/build/outputs/apk/
+     - ./info.txt
+
+
+build_release :
+  stage: build
+
+  script:
+    - ./gradlew assembleRelease
+
+  artifacts:
+    paths :
+     - app/build/outputs/apk/
+    
+
+
+test :
+  stage: test
+  script:
+    - ./gradlew :app:test
